@@ -1,8 +1,8 @@
 package com.github.prominence.vertx.wiki;
 
+import com.github.prominence.vertx.wiki.database.WikiDatabaseVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 
 public class MainVerticle extends AbstractVerticle {
@@ -15,7 +15,7 @@ public class MainVerticle extends AbstractVerticle {
     dbVerticleDeployment.future().compose(id -> {
       Promise<String> httpVerticleDeployment = Promise.promise();
       vertx.deployVerticle(
-        "com.github.prominence.vertx.wiki.HttpServerVerticle",
+        "com.github.prominence.vertx.wiki.http.HttpServerVerticle",
           new DeploymentOptions().setInstances(2),
           httpVerticleDeployment);
       return httpVerticleDeployment.future();
