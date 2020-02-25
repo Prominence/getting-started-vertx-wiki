@@ -11,17 +11,17 @@ import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLConnection;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class WikiDatabaseServiceImpl implements WikiDatabaseService {
   private static final Logger LOGGER = LoggerFactory.getLogger(WikiDatabaseServiceImpl.class);
 
-  private final HashMap<SqlQuery, String> sqlQueries;
+  private final Map<SqlQuery, String> sqlQueries;
   private final JDBCClient dbClient;
 
-  WikiDatabaseServiceImpl(JDBCClient dbClient, HashMap<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
+  WikiDatabaseServiceImpl(JDBCClient dbClient, Map<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
     this.dbClient = dbClient;
     this.sqlQueries = sqlQueries;
 

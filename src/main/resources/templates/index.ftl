@@ -3,14 +3,16 @@
 <div class="row">
 
   <div class="col-md-12 mt-1">
-    <div class="float-right">
-      <form class="form-inline" action="/create" method="post">
-        <div class="form-group">
-          <input type="text" class="form-control" id="name" name="name" placeholder="New page name">
-        </div>
-        <button type="submit" class="btn btn-primary">Create</button>
-      </form>
-    </div>
+    <#if canCreatePage>
+      <div class="float-right">
+        <form class="form-inline" action="/action/create" method="post">
+          <div class="form-group">
+            <input type="text" class="form-control" id="name" name="name" placeholder="New page name">
+          </div>
+          <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+      </div>
+    </#if>
     <h1 class="display-4">${title}</h1>
   </div>
 
@@ -25,16 +27,21 @@
     <#else>
       <p>The wiki is currently empty!</p>
     </#list>
-    <#if backup_gist_url??>
-      <div class="alert alert-success" role="alert">
-        Successfully created a backup: <a href="${backup_gist_url}" target="_blank">${backup_gist_url}</a>
-      </div>
-    <#else>
-      <a href="/backup" class="btn btn-secondary">Backup</a>
+
+    <#if canCreatePage>
+      <#if backup_gist_url?has_content>
+        <div class="alert alert-success" role="alert">
+          Successfully created a backup:
+          <a href="${backup_gist_url}" class="alert-link">${backup_gist_url}</a>
+        </div>
+      <#else>
+        <p>
+          <a class="btn btn-outline-secondary btn-sm" href="/action/backup" role="button" aria-pressed="true">Backup</a>
+        </p>
+      </#if>
     </#if>
   </div>
 
 </div>
 
 <#include "footer.ftl">
-

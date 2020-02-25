@@ -11,8 +11,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ProxyGen
 @VertxGen
@@ -40,7 +40,7 @@ public interface WikiDatabaseService {
   WikiDatabaseService deletePage(int id, Handler<AsyncResult<Void>> resultHandler);
 
   @GenIgnore
-  static WikiDatabaseService create(JDBCClient dbClient, HashMap<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
+  static WikiDatabaseService create(JDBCClient dbClient, Map<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
     return new WikiDatabaseServiceImpl(dbClient, sqlQueries, readyHandler);
   }
 

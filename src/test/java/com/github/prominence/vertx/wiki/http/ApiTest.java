@@ -7,6 +7,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -19,19 +20,27 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.github.prominence.vertx.wiki.database.DatabaseConstants.CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE;
+import static com.github.prominence.vertx.wiki.database.DatabaseConstants.CONFIG_WIKIDB_JDBC_URL;
+
 @RunWith(VertxUnitRunner.class)
 public class ApiTest {
 
   private Vertx vertx;
   private WebClient webClient;
 
+  private String jwtTokenHeaderValue;
+
   @Before
   public void prepare(TestContext context) {
     vertx = Vertx.vertx();
 
     JsonObject dbConf = new JsonObject()
-      .put(WikiDatabaseVerticle.CONFIG_WIKIDB_JDBC_URL, "jdbc:hsqldb:mem:testdb;shutdown=true")
-      .put(WikiDatabaseVerticle.CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE, 4);
+      .put(CONFIG_WIKIDB_JDBC_URL, "jdbc:hsqldb:mem:testdb;shutdown=true")
+      .put(CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE, 4);
+
+    vertx.deployVerticle(new AuthInitializerVerticle(),
+      new DeploymentOptions().setConfig(dbConf), context.asyncAssertSuccess());
 
     vertx.deployVerticle(new WikiDatabaseVerticle(),
       new DeploymentOptions().setConfig(dbConf), context.asyncAssertSuccess());
@@ -40,7 +49,9 @@ public class ApiTest {
 
     webClient = WebClient.create(vertx, new WebClientOptions()
       .setDefaultHost("127.0.0.1")
-      .setDefaultPort(8080));
+      .setDefaultPort(8080)
+      .setSsl(true)
+      .setTrustOptions(new JksOptions().setPath("server-keystore.jks").setPassword("secret")));
   }
 
   @After
@@ -52,18 +63,32 @@ public class ApiTest {
   public void play_with_api(TestContext context) {
     Async async = context.async();
 
+    Promise<HttpResponse<String>> tokenPromise = Promise.promise();
+    webClient.get("/api/token")
+      .putHeader("login", "foo")
+      .putHeader("password", "bar")
+      .as(BodyCodec.string())
+      .send(tokenPromise);
+    Future<HttpResponse<String>> tokenFuture = tokenPromise.future();
+
     JsonObject page = new JsonObject()
       .put("name", "Sample")
       .put("markdown", "# A page");
 
-    Promise<HttpResponse<JsonObject>> postPagePromise = Promise.promise();
-    webClient.post("/api/pages")
-      .as(BodyCodec.jsonObject())
-      .sendJsonObject(page, postPagePromise);
+    Future<HttpResponse<JsonObject>> postPageFuture = tokenFuture.compose(tokenResponse -> {
+      Promise<HttpResponse<JsonObject>> promise = Promise.promise();
+      jwtTokenHeaderValue = "Bearer " + tokenResponse.body();
+      webClient.post("/api/pages")
+        .putHeader("Authorization", jwtTokenHeaderValue)
+        .as(BodyCodec.jsonObject())
+        .sendJsonObject(page, promise);
+      return promise.future();
+    });
 
-    Future<HttpResponse<JsonObject>> getPageFuture = postPagePromise.future().compose(resp -> {
+    Future<HttpResponse<JsonObject>> getPageFuture = postPageFuture.compose(resp -> {
       Promise<HttpResponse<JsonObject>> promise = Promise.promise();
       webClient.get("/api/pages")
+        .putHeader("Authorization", jwtTokenHeaderValue)
         .as(BodyCodec.jsonObject())
         .send(promise);
       return promise.future();

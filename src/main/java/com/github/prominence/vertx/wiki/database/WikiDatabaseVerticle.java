@@ -9,21 +9,19 @@ import io.vertx.serviceproxy.ServiceBinder;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Properties;
 
-public class WikiDatabaseVerticle extends AbstractVerticle {
+import static com.github.prominence.vertx.wiki.database.DatabaseConstants.*;
 
-  public static final String CONFIG_WIKIDB_JDBC_URL = "wikidb.jdbc.url";
-  public static final String CONFIG_WIKIDB_JDBC_DRIVER_CLASS = "wikidb.jdbc.driver_class";
-  public static final String CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE = "wikidb.jdbc.max_pool_size";
+public class WikiDatabaseVerticle extends AbstractVerticle {
   public static final String CONFIG_WIKIDB_SQL_QUERIES_RESOURCE_FILE = "wikidb.sqlqueries.resource.file";
   public static final String CONFIG_WIKIDB_QUEUE = "wikidb.queue";
-
   /*
    * Note: this uses blocking APIs, but data is small...
    */
-  private HashMap<SqlQuery, String> loadSqlQueries() throws IOException {
+  private Map<SqlQuery, String> loadSqlQueries() throws IOException {
 
     String queriesFile = config().getString(CONFIG_WIKIDB_SQL_QUERIES_RESOURCE_FILE);
     InputStream queriesInputStream;
@@ -37,7 +35,7 @@ public class WikiDatabaseVerticle extends AbstractVerticle {
     queriesProps.load(queriesInputStream);
     queriesInputStream.close();
 
-    HashMap<SqlQuery, String> sqlQueries = new HashMap<>();
+    EnumMap<SqlQuery, String> sqlQueries = new EnumMap<>(SqlQuery.class);
     sqlQueries.put(SqlQuery.CREATE_PAGES_TABLE, queriesProps.getProperty("create-pages-table"));
     sqlQueries.put(SqlQuery.ALL_PAGES, queriesProps.getProperty("all-pages"));
     sqlQueries.put(SqlQuery.GET_PAGE, queriesProps.getProperty("get-page"));
@@ -52,12 +50,12 @@ public class WikiDatabaseVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> promise) throws Exception {
 
-    HashMap<SqlQuery, String> sqlQueries = loadSqlQueries();
+    Map<SqlQuery, String> sqlQueries = loadSqlQueries();
 
     JDBCClient dbClient = JDBCClient.createShared(vertx, new JsonObject()
-      .put("url", config().getString(CONFIG_WIKIDB_JDBC_URL, "jdbc:hsqldb:file:db/wiki"))
-      .put("driver_class", config().getString(CONFIG_WIKIDB_JDBC_DRIVER_CLASS, "org.hsqldb.jdbcDriver"))
-      .put("max_pool_size", config().getInteger(CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE, 30)));
+      .put("url", config().getString(CONFIG_WIKIDB_JDBC_URL, DEFAULT_WIKIDB_JDBC_URL))
+      .put("driver_class", config().getString(CONFIG_WIKIDB_JDBC_DRIVER_CLASS, DEFAULT_WIKIDB_JDBC_DRIVER_CLASS))
+      .put("max_pool_size", config().getInteger(CONFIG_WIKIDB_JDBC_MAX_POOL_SIZE, DEFAULT_JDBC_MAX_POOL_SIZE)));
 
     WikiDatabaseService.create(dbClient, sqlQueries, ready -> {
       if (ready.succeeded()) {
