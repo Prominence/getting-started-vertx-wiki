@@ -1,5 +1,6 @@
 package com.github.prominence.vertx.wiki.database;
 
+import io.reactivex.Flowable;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -7,13 +8,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
+import io.vertx.reactivex.SingleHelper;
+import io.vertx.reactivex.ext.jdbc.JDBCClient;
+import io.vertx.reactivex.ext.sql.SQLConnection;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class WikiDatabaseServiceImpl implements WikiDatabaseService {
   private static final Logger LOGGER = LoggerFactory.getLogger(WikiDatabaseServiceImpl.class);
@@ -46,33 +47,23 @@ public class WikiDatabaseServiceImpl implements WikiDatabaseService {
 
   @Override
   public WikiDatabaseService fetchAllPages(Handler<AsyncResult<JsonArray>> resultHandler) {
-    dbClient.query(sqlQueries.get(SqlQuery.ALL_PAGES), res -> {
-      if (res.succeeded()) {
-        JsonArray pages = new JsonArray(res.result()
-          .getResults()
-          .stream()
-          .map(json -> json.getString(0))
-          .sorted()
-          .collect(Collectors.toList()));
-        resultHandler.handle(Future.succeededFuture(pages));
-      } else {
-        LOGGER.error("Database query error", res.cause());
-        resultHandler.handle(Future.failedFuture(res.cause()));
-      }
-    });
+    dbClient.rxQuery(sqlQueries.get(SqlQuery.ALL_PAGES))
+      .flatMapPublisher(res -> {
+        List<JsonArray> results = res.getResults();
+        return Flowable.fromIterable(results);
+      })
+      .map(json -> json.getString(0))
+      .sorted()
+      .collect(JsonArray::new, JsonArray::add)
+      .subscribe(SingleHelper.toObserver(resultHandler));
     return this;
   }
 
   @Override
   public WikiDatabaseService fetchAllPagesData(Handler<AsyncResult<List<JsonObject>>> resultHandler) {
-    dbClient.query(sqlQueries.get(SqlQuery.ALL_PAGES_DATA), queryResult -> {
-      if (queryResult.succeeded()) {
-        resultHandler.handle(Future.succeededFuture(queryResult.result().getRows()));
-      } else {
-        LOGGER.error("Database query error", queryResult.cause());
-        resultHandler.handle(Future.failedFuture(queryResult.cause()));
-      }
-    });
+    dbClient.rxQuery(sqlQueries.get(SqlQuery.ALL_PAGES_DATA))
+      .map(ResultSet::getRows)
+      .subscribe(SingleHelper.toObserver(resultHandler));
     return this;
   }
 

@@ -1,10 +1,9 @@
 package com.github.prominence.vertx.wiki.http;
 
 import com.github.prominence.vertx.wiki.database.WikiDatabaseVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
@@ -33,7 +32,10 @@ public class ApiTest {
 
   @Before
   public void prepare(TestContext context) {
-    vertx = Vertx.vertx();
+    vertx = Vertx.vertx(new VertxOptions().setAddressResolverOptions(new AddressResolverOptions()
+      .setHostsValue(Buffer.buffer(
+        "127.0.0.1      localhost"
+      ))));
 
     JsonObject dbConf = new JsonObject()
       .put(CONFIG_WIKIDB_JDBC_URL, "jdbc:hsqldb:mem:testdb;shutdown=true")
@@ -48,7 +50,7 @@ public class ApiTest {
     vertx.deployVerticle(new HttpServerVerticle(), context.asyncAssertSuccess());
 
     webClient = WebClient.create(vertx, new WebClientOptions()
-      .setDefaultHost("127.0.0.1")
+      .setDefaultHost("localhost")
       .setDefaultPort(8080)
       .setSsl(true)
       .setTrustOptions(new JksOptions().setPath("server-keystore.jks").setPassword("secret")));
@@ -103,6 +105,7 @@ public class ApiTest {
         .put("id", 0)
         .put("markdown", "Oh Yeah!");
       webClient.put("/api/pages/0")
+        .putHeader("Authorization", jwtTokenHeaderValue)
         .as(BodyCodec.jsonObject())
         .sendJsonObject(data, promise);
       return promise.future();
@@ -112,6 +115,7 @@ public class ApiTest {
       context.assertTrue(resp.body().getBoolean("success"));
       Promise<HttpResponse<JsonObject>> promise = Promise.promise();
       webClient.delete("/api/pages/0")
+        .putHeader("Authorization", jwtTokenHeaderValue)
         .as(BodyCodec.jsonObject())
         .send(promise);
       return promise.future();

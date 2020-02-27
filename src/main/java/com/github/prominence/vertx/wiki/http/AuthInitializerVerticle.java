@@ -1,14 +1,14 @@
 package com.github.prominence.vertx.wiki.http;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.ResultSet;
-import io.vertx.ext.sql.SQLConnection;
+import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.jdbc.JDBCClient;
+import io.vertx.reactivex.ext.sql.SQLConnection;
 
 import java.util.Arrays;
 import java.util.List;

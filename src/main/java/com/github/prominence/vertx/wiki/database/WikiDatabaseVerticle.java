@@ -1,9 +1,11 @@
 package com.github.prominence.vertx.wiki.database;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.reactivex.core.AbstractVerticle;
+import io.vertx.reactivex.ext.jdbc.JDBCClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
 import java.io.FileInputStream;
@@ -18,6 +20,8 @@ import static com.github.prominence.vertx.wiki.database.DatabaseConstants.*;
 public class WikiDatabaseVerticle extends AbstractVerticle {
   public static final String CONFIG_WIKIDB_SQL_QUERIES_RESOURCE_FILE = "wikidb.sqlqueries.resource.file";
   public static final String CONFIG_WIKIDB_QUEUE = "wikidb.queue";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(WikiDatabaseVerticle.class);
   /*
    * Note: this uses blocking APIs, but data is small...
    */
@@ -59,12 +63,13 @@ public class WikiDatabaseVerticle extends AbstractVerticle {
 
     WikiDatabaseService.create(dbClient, sqlQueries, ready -> {
       if (ready.succeeded()) {
-        ServiceBinder binder = new ServiceBinder(vertx);
+        ServiceBinder binder = new ServiceBinder(vertx.getDelegate());
         binder
           .setAddress(CONFIG_WIKIDB_QUEUE)
           .register(WikiDatabaseService.class, ready.result());
         promise.complete();
       } else {
+        LOGGER.error(ready.cause());
         promise.fail(ready.cause());
       }
     });
