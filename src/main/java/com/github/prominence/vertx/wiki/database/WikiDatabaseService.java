@@ -11,24 +11,31 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.ext.jdbc.JDBCClient;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @ProxyGen
 @VertxGen
 public interface WikiDatabaseService {
 
+  @GenIgnore
+  static WikiDatabaseService create(JDBCClient dbClient, HashMap<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
+    return new WikiDatabaseServiceImpl(dbClient, sqlQueries, readyHandler);
+  }
+
+  @GenIgnore
+  static com.github.prominence.vertx.wiki.database.reactivex.WikiDatabaseService createProxy(Vertx vertx, String address) {
+    return new com.github.prominence.vertx.wiki.database.reactivex.WikiDatabaseService(new WikiDatabaseServiceVertxEBProxy(vertx, address));
+  }
+
   @Fluent
   WikiDatabaseService fetchAllPages(Handler<AsyncResult<JsonArray>> resultHandler);
 
   @Fluent
-  WikiDatabaseService fetchAllPagesData(Handler<AsyncResult<List<JsonObject>>> resultHandler);
+  WikiDatabaseService fetchPage(String name, Handler<AsyncResult<JsonObject>> resultHandler);
 
   @Fluent
   WikiDatabaseService fetchPageById(int id, Handler<AsyncResult<JsonObject>> resultHandler);
-
-  @Fluent
-  WikiDatabaseService fetchPage(String name, Handler<AsyncResult<JsonObject>> resultHandler);
 
   @Fluent
   WikiDatabaseService createPage(String title, String markdown, Handler<AsyncResult<Void>> resultHandler);
@@ -39,13 +46,6 @@ public interface WikiDatabaseService {
   @Fluent
   WikiDatabaseService deletePage(int id, Handler<AsyncResult<Void>> resultHandler);
 
-  @GenIgnore
-  static WikiDatabaseService create(JDBCClient dbClient, Map<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
-    return new WikiDatabaseServiceImpl(dbClient, sqlQueries, readyHandler);
-  }
-
-  @GenIgnore
-  static WikiDatabaseService createProxy(Vertx vertx, String address) {
-    return new WikiDatabaseServiceVertxEBProxy(vertx, address);
-  }
+  @Fluent
+  WikiDatabaseService fetchAllPagesData(Handler<AsyncResult<List<JsonObject>>> resultHandler);
 }

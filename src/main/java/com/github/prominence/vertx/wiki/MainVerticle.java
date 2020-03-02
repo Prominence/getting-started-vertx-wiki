@@ -1,6 +1,5 @@
 package com.github.prominence.vertx.wiki;
 
-import com.github.prominence.vertx.wiki.http.AuthInitializerVerticle;
 import io.reactivex.Single;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
@@ -10,12 +9,11 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> promise) {
-    Single<String> dbVerticleDeployment = vertx.rxDeployVerticle("com.github.prominence.vertx.wiki.http.HttpServerVerticle");
+    Single<String> dbVerticleDeployment = vertx.rxDeployVerticle("io.vertx.guides.wiki.database.WikiDatabaseVerticle");
+
+    DeploymentOptions opts = new DeploymentOptions().setInstances(2);
     dbVerticleDeployment
-      .flatMap(id -> vertx.rxDeployVerticle(
-        "com.github.prominence.vertx.wiki.database.WikiDatabaseVerticle", new DeploymentOptions().setInstances(2)
-      ))
-      .flatMap(id -> vertx.rxDeployVerticle(new AuthInitializerVerticle()))
+      .flatMap(id -> vertx.rxDeployVerticle("io.vertx.guides.wiki.http.HttpServerVerticle", opts))
       .subscribe(id -> promise.complete(), promise::fail);
   }
 }
