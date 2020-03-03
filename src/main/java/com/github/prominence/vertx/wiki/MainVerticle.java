@@ -9,11 +9,11 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> promise) {
-    Single<String> dbVerticleDeployment = vertx.rxDeployVerticle("io.vertx.guides.wiki.database.WikiDatabaseVerticle");
+    Single<String> dbVerticleDeployment = vertx.rxDeployVerticle("com.github.prominence.vertx.wiki.database.WikiDatabaseVerticle");
 
     DeploymentOptions opts = new DeploymentOptions().setInstances(2);
     dbVerticleDeployment
-      .flatMap(id -> vertx.rxDeployVerticle("io.vertx.guides.wiki.http.HttpServerVerticle", opts))
+      .flatMap(id -> vertx.rxDeployVerticle("com.github.prominence.vertx.wiki.http.HttpServerVerticle", opts))
       .subscribe(id -> promise.complete(), promise::fail);
   }
 }

@@ -9,7 +9,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.ext.jdbc.JDBCClient;
+import io.vertx.ext.jdbc.JDBCClient;
 
 import java.util.HashMap;
 import java.util.List;

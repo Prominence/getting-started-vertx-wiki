@@ -2,8 +2,8 @@ package com.github.prominence.vertx.wiki.database;
 
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.AbstractVerticle;
-import io.vertx.reactivex.ext.jdbc.JDBCClient;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
 import java.io.FileInputStream;
@@ -31,7 +31,7 @@ public class WikiDatabaseVerticle extends AbstractVerticle {
 
     WikiDatabaseService.create(dbClient, sqlQueries, ready -> {
       if (ready.succeeded()) {
-        ServiceBinder binder = new ServiceBinder(vertx.getDelegate());
+        ServiceBinder binder = new ServiceBinder(vertx);
         binder.setAddress(CONFIG_WIKIDB_QUEUE).register(WikiDatabaseService.class, ready.result());
         promise.complete();
       } else {

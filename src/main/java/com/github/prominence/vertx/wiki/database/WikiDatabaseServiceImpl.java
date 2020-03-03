@@ -12,16 +12,17 @@ import io.vertx.reactivex.SingleHelper;
 import io.vertx.reactivex.ext.jdbc.JDBCClient;
 import io.vertx.reactivex.ext.sql.SQLClientHelper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WikiDatabaseServiceImpl implements WikiDatabaseService {
+class WikiDatabaseServiceImpl implements WikiDatabaseService {
 
   private final Map<SqlQuery, String> sqlQueries;
   private final JDBCClient dbClient;
 
-  WikiDatabaseServiceImpl(JDBCClient dbClient, Map<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
-    this.dbClient = dbClient;
+  WikiDatabaseServiceImpl(io.vertx.ext.jdbc.JDBCClient dbClient, HashMap<SqlQuery, String> sqlQueries, Handler<AsyncResult<WikiDatabaseService>> readyHandler) {
+    this.dbClient = new JDBCClient(dbClient);
     this.sqlQueries = sqlQueries;
 
     SQLClientHelper.usingConnectionSingle(this.dbClient, conn -> conn
