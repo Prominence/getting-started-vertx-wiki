@@ -1,8 +1,8 @@
 package com.github.prominence.vertx.wiki.database;
 
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.AbstractVerticle;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.serviceproxy.ServiceBinder;
 

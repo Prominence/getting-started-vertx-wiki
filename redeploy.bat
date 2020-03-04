@@ -1,7 +1,7 @@
 @echo off
 
 SET LAUNCHER="io.vertx.core.Launcher"
-SET VERTICLE="io.vertx.starter.com.github.prominence.vertx.wiki.MainVerticle"
+SET VERTICLE="com.github.prominence.vertx.wiki.MainVerticle"
 SET CMD="mvn compile"
 SET VERTX_CMD="run"
 SET CMD_LINE_ARGS=%*

@@ -27,13 +27,13 @@ angular.module("wikiApp", [])
       });
     };
 
-    $scope.pageExists = function() {
+    $scope.pageExists = function () {
       return $scope.pageId !== undefined;
     };
 
     $scope.load = function (id) {
       $scope.pageModified = false;
-      $http.get("/api/pages/" + id).then(function(response) {
+      $http.get("/api/pages/" + id).then(function (response) {
         var page = response.data.page;
         $scope.pageId = page.id;
         $scope.pageName = page.name;
@@ -42,7 +42,7 @@ angular.module("wikiApp", [])
       });
     };
 
-    $scope.updateRendering = function(html) {
+    $scope.updateRendering = function (html) {
       document.getElementById("rendering").innerHTML = html;
     };
 
@@ -53,12 +53,14 @@ angular.module("wikiApp", [])
           "name": $scope.pageName,
           "markdown": $scope.pageMarkdown
         };
-        $http.post("/api/pages", payload).then(function(ok) {
+        $http.post("/api/pages", payload).then(function (ok) {
           $scope.reload();
           $scope.success("Page created");
-          var guessMaxId = _.maxBy($scope.pages, function(page) { return page.id; });
+          var guessMaxId = _.maxBy($scope.pages, function (page) {
+            return page.id;
+          });
           $scope.load(guessMaxId.id || 0);
-        }, function(err) {
+        }, function (err) {
           $scope.error(err.data.error);
         });
       } else {
@@ -66,41 +68,41 @@ angular.module("wikiApp", [])
           "client": clientUuid,
           "markdown": $scope.pageMarkdown
         };
-        $http.put("/api/pages/" + $scope.pageId, payload).then(function(ok) {
+        $http.put("/api/pages/" + $scope.pageId, payload).then(function (ok) {
           $scope.success("Page saved");
-        }, function(err) {
+        }, function (err) {
           $scope.error(err.data.error);
         });
       }
     };
 
-    $scope.delete = function() {
-      $http.delete("/api/pages/" + $scope.pageId).then(function(ok) {
+    $scope.delete = function () {
+      $http.delete("/api/pages/" + $scope.pageId).then(function (ok) {
         $scope.reload();
         $scope.newPage();
         $scope.success("Page deleted");
-      }, function(err) {
+      }, function (err) {
         $scope.error(err.data.error);
       });
     };
 
-    $scope.success = function(message) {
+    $scope.success = function (message) {
       $scope.alertMessage = message;
       var alert = document.getElementById("alertMessage");
       alert.classList.add("alert-success");
       alert.classList.remove("invisible");
-      $timeout(function() {
+      $timeout(function () {
         alert.classList.add("invisible");
         alert.classList.remove("alert-success");
       }, 3000);
     };
 
-    $scope.error = function(message) {
+    $scope.error = function (message) {
       $scope.alertMessage = message;
       var alert = document.getElementById("alertMessage");
       alert.classList.add("alert-danger");
       alert.classList.remove("invisible");
-      $timeout(function() {
+      $timeout(function () {
         alert.classList.add("invisible");
         alert.classList.remove("alert-danger");
       }, 5000);
@@ -115,7 +117,7 @@ angular.module("wikiApp", [])
       if (markdownRenderingPromise !== null) {
         $timeout.cancel(markdownRenderingPromise);
       }
-      markdownRenderingPromise = $timeout(function() {
+      markdownRenderingPromise = $timeout(function () {
         markdownRenderingPromise = null;
         eb.send("app.markdown", text, function (err, reply) {
           if (err === null) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export LAUNCHER="io.vertx.core.Launcher"
-export VERTICLE="io.vertx.starter.com.github.prominence.vertx.wiki.MainVerticle"
+export VERTICLE="com.github.prominence.vertx.wiki.MainVerticle"
 export CMD="mvn compile"
 export VERTX_CMD="run"
 
